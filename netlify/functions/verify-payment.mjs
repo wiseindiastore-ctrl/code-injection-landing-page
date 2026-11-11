@@ -55,5 +55,6 @@ export default async (request) => {
   });
   const mail = await mailResponse.json();
   if (!mailResponse.ok) return json({ error: "Payment is verified, but the delivery email could not be sent. Contact support with payment ID: " + paymentId }, 502);
-  return json({ verified: true, delivered: true });
+  // The link is only returned after the payment is verified and captured.
+  return json({ verified: true, delivered: true, downloadUrl: deliveryUrl });
 };

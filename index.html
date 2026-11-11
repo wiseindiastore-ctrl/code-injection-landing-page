@@ -714,8 +714,13 @@ footer a:hover { color: var(--txt); }
             var verifyData = await verifyResponse.json();
             if (!verifyResponse.ok || !verifyData.verified) throw new Error(verifyData.error || "Payment verification failed.");
             track("Purchase", { value: 289, currency: "INR", content_name: "Shopify Liquid Library" });
-            alert("Payment verified! Your download link has been sent to " + email + ". Please also check Spam/Promotions.");
             checkoutBusy = false; restoreButton();
+            /* Send the buyer to their files. Short pause so the Pixel Purchase event is sent first. */
+            if (verifyData.downloadUrl) {
+              setTimeout(function () { window.location.href = verifyData.downloadUrl; }, 1200);
+            } else {
+              alert("Payment verified! Your download link has been sent to " + email + ". Please also check Spam/Promotions.");
+            }
           } catch (err) {
             alert("We received a payment response, but could not verify it yet. Please do not pay again. Contact support with payment ID: " + response.razorpay_payment_id);
             checkoutBusy = false; restoreButton();
