@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Meta Pixel: replace YOUR_META_PIXEL_ID before launch -->
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','YOUR_META_PIXEL_ID');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=YOUR_META_PIXEL_ID&ev=PageView&noscript=1" /></noscript>
+<title>Code Injection</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: dark navy stage, neon teal accent, code-editor motif; sections stack as full-width bands */
+:root {
+  --bg: #080c1b;
+  --bg2: #0c1226;
+  --card: #101828;
+  --card2: #0a1020;
+  --line: rgba(140, 170, 210, 0.16);
+  --txt: #f1f5f9;
+  --mut: #94a3b8;
+  --dim: #64748b;
+  --neon: #19d9a2;
+  --neon-ink: #031a14;
+  --sky: #38bdf8;
+  --amber: #fbbf24;
+  --red: #ff4d4f;
+  --f-ui: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-code: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--txt); font-family: var(--f-ui); font-size: 16px; line-height: 1.55; padding-bottom: 88px; }
+h1, h2, h3, h4, p, ul { margin: 0; }
+h1, h2, h3 { letter-spacing: -0.025em; line-height: 1.08; text-wrap: balance; }
+a { color: inherit; }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--neon); outline-offset: 3px; border-radius: 8px; }
+svg { display: block; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band { padding-block: clamp(52px, 8vw, 104px); }
+.band.alt { background: var(--bg2); }
+.kicker { font-family: var(--f-code); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--neon); }
+.h2 { font-size: clamp(30px, 5vw, 50px); font-weight: 800; }
+.lede { color: var(--mut); font-size: clamp(16px, 2vw, 19px); max-width: 62ch; }
+.sec-head { display: grid; gap: 14px; justify-items: center; text-align: center; margin: 0 auto clamp(30px, 5vw, 54px); max-width: 780px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #00f0b5, #10b981 55%, #059669); color: var(--neon-ink); font-weight: 800; font-size: 17px; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(255,255,255,.4); text-decoration: none; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 28px rgba(25,217,162,.38), inset 0 1px 0 rgba(255,255,255,.55); transition: transform .15s ease, box-shadow .15s ease; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 0 38px rgba(25,217,162,.55), inset 0 1px 0 rgba(255,255,255,.55); }
+.btn::after { content: ""; position: absolute; top: -50%; left: -80%; width: 40%; height: 200%; background: linear-gradient(120deg, transparent, rgba(255,255,255,.5), transparent); transform: rotate(25deg); animation: shine 4s ease-in-out infinite; }
+@keyframes shine { 0% { left: -80%; } 35%, 100% { left: 170%; } }
+.btn-ghost { background: transparent; color: var(--txt); border: 1px solid var(--line); box-shadow: none; font-size: 14px; padding: 8px 16px; }
+.btn-ghost::after { display: none; }
+.btn-ghost:hover { border-color: var(--neon); box-shadow: none; }
+
+/* announcement bar */
+.bar { background: linear-gradient(90deg, rgba(25,217,162,.14), rgba(56,189,248,.14)); border-bottom: 1px solid var(--line); padding: 9px 0; padding-top: calc(9px + env(safe-area-inset-top, 0px)); font-size: 14px; font-weight: 600; }
+.bar .wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.bar .msg { display: flex; align-items: center; gap: 8px; color: var(--amber); }
+.bar .msg svg { width: 16px; height: 16px; }
+
+/* hero */
+.hero { padding-block: clamp(40px, 7vw, 90px); background: radial-gradient(700px 360px at 80% 0%, rgba(56,189,248,.14), transparent 70%), radial-gradient(600px 320px at 5% 10%, rgba(25,217,162,.12), transparent 70%), var(--bg); overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+.badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--neon); background: rgba(25,217,162,.1); border: 1px solid rgba(25,217,162,.35); padding: 6px 14px; border-radius: 999px; }
+.hero h1 { font-size: clamp(38px, 5.4vw, 66px); font-weight: 800; margin-top: 20px; }
+.hero h1 span { background: linear-gradient(100deg, var(--neon), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .lede { margin-top: 20px; }
+.ticks { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; list-style: none; padding: 0; }
+.ticks li { display: flex; align-items: center; gap: 8px; color: var(--txt); font-weight: 600; font-size: 14px; }
+.ticks svg { width: 18px; height: 18px; color: var(--neon); flex-shrink: 0; }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px; margin-top: 32px; }
+.hero-price { display: grid; line-height: 1.15; }
+.hero-price s { color: var(--dim); font-size: 14px; }
+.hero-price b { font-size: 20px; }
+.pay-note { margin-top: 18px; color: var(--dim); font-size: 13px; }
+
+/* editor mock */
+.editor-wrap { position: relative; padding: 18px 0 30px; }
+.editor { background: linear-gradient(145deg, rgba(16,24,40,.96), rgba(8,12,27,.98)); border: 1px solid rgba(25,217,162,.28); border-radius: 18px; box-shadow: 0 30px 70px -20px rgba(0,0,0,.85), 0 0 40px -8px rgba(25,217,162,.2); overflow: hidden; }
+.ed-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+.dot:nth-child(2) { background: #febc2e; }
+.dot:nth-child(3) { background: #28c840; }
+.ed-file { margin-left: 10px; font-family: var(--f-code); font-size: 12px; color: var(--mut); }
+.ed-body { margin: 0; padding: 20px 18px; font-family: var(--f-code); font-size: 13px; line-height: 1.8; color: var(--mut); overflow-x: auto; }
+.ed-body .t { color: var(--sky); }
+.ed-body .s { color: var(--neon); }
+.ed-body .k { color: var(--amber); }
+.ed-body .c { color: var(--dim); }
+.chip { position: absolute; background: rgba(8,12,27,.92); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 14px; display: grid; line-height: 1.2; box-shadow: 0 14px 34px -10px rgba(0,0,0,.8); }
+.chip b { font-size: 15px; }
+.chip span { font-size: 12px; color: var(--mut); }
+.chip.a { left: -6px; bottom: 0; }
+.chip.b { right: -6px; top: 0; }
+
+.chip { display: flex; align-items: center; gap: 12px; z-index: 3; }
+.chip > div { display: grid; line-height: 1.2; }
+.chip .ci { width: 38px; height: 38px; border-radius: 10px; background: rgba(25,217,162,.18); border: 1px solid rgba(25,217,162,.5); color: var(--neon); display: grid; place-items: center; flex-shrink: 0; }
+.chip .ci svg { width: 20px; height: 20px; }
+.ed-file { margin-left: auto; border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; background: rgba(8,12,27,.7); }
+.ed-pad { padding: 14px; }
+
+/* hero poster: sized in container units so it scales like an image */
+.poster { container-type: inline-size; position: relative; margin: 0; aspect-ratio: 972 / 860; overflow: hidden; border-radius: 16px; font-family: var(--f-ui); color: #fff;
+  background: radial-gradient(60cqw 36cqw at 72% 88%, rgba(25,217,162,.3), transparent 70%), radial-gradient(46cqw 36cqw at 92% 18%, rgba(124,58,237,.26), transparent 70%), radial-gradient(40cqw 30cqw at 10% 0%, rgba(25,217,162,.1), transparent 70%), #05070f; }
+.poster > * { position: absolute; margin: 0; }
+.pz-floor { left: 30cqw; right: -10cqw; bottom: -6cqw; height: 22cqw; background: radial-gradient(ellipse at 50% 60%, rgba(25,217,162,.55), transparent 65%); }
+.pz-ring { left: 46cqw; top: 50cqw; width: 64cqw; height: 28cqw; border: .35cqw solid rgba(25,217,162,.55); border-radius: 50%; box-shadow: 0 0 3cqw rgba(25,217,162,.6), inset 0 0 3cqw rgba(25,217,162,.35); transform: rotate(-9deg); }
+.pz-logo { left: 3.4cqw; top: 2.6cqw; display: flex; align-items: center; gap: 1.4cqw; }
+.pz-logo b { display: block; font-size: 2.5cqw; letter-spacing: .08em; line-height: 1; }
+.pz-logo small { display: block; margin-top: .7cqw; font-family: var(--f-code); font-size: 1.15cqw; letter-spacing: .22em; color: #94a3b8; text-transform: uppercase; }
+.pz-mono { width: 6cqw; height: 6cqw; display: grid; place-items: center; font-weight: 800; font-size: 2.4cqw; color: #05070f; background: linear-gradient(135deg, #19d9a2, #38bdf8); clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); }
+.pz-pro { right: 3cqw; top: 2.4cqw; display: flex; align-items: center; gap: .9cqw; font-weight: 800; font-size: 1.7cqw; letter-spacing: .04em; color: #e2e8f0; border: .25cqw solid rgba(25,217,162,.55); border-radius: 999px; padding: .9cqw 2.2cqw; background: rgba(8,12,27,.6); }
+.pz-pro svg { width: 2.2cqw; height: 2.2cqw; color: #fbbf24; }
+.pz-h { left: 3.4cqw; top: 12.500cqw; font-size: 7.400cqw; line-height: 1.04; font-weight: 800; letter-spacing: -.03em; }
+.pz-h span { background: linear-gradient(95deg, #6ee7b7, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pz-sub { left: 3.4cqw; top: 38.500cqw; width: 46cqw; font-size: 1.85cqw; line-height: 1.5; color: #cbd5e1; }
+.pz-feats { left: 3.4cqw; top: 53cqw; width: 46cqw; display: grid; grid-template-columns: 1fr 1fr; gap: 2cqw 3cqw; }
+.pz-feats div { display: flex; align-items: center; gap: 1.6cqw; font-weight: 700; font-size: 1.9cqw; line-height: 1.25; }
+.pz-feats i { width: 5.800cqw; height: 5.800cqw; flex-shrink: 0; border-radius: 50%; border: .3cqw solid var(--c); color: var(--c); display: grid; place-items: center; box-shadow: 0 0 1.600cqw color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 12%, #05070f); }
+.pz-feats svg { width: 2.800cqw; height: 2.800cqw; }
+.pz-card { border-radius: 2cqw; box-shadow: 0 2cqw 4cqw rgba(0,0,0,.55); border: .22cqw solid rgba(255,255,255,.28); display: grid; justify-items: center; align-content: center; text-align: center; }
+.pz-shop { left: 58cqw; top: 19cqw; width: 19.500cqw; height: 21.500cqw; transform: rotate(-6deg); z-index: 3; gap: .5cqw; background: linear-gradient(150deg, rgba(52,190,120,.95), rgba(14,88,72,.92)); box-shadow: 0 2cqw 4cqw rgba(0,0,0,.55), 0 0 4cqw rgba(25,217,162,.4); }
+.pz-shop svg { width: 6.500cqw; height: 6.500cqw; }
+.pz-shop em { font-size: 3cqw; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.pz-shop b { font-size: 4.400cqw; line-height: 1; color: #fcd34d; margin-top: .6cqw; }
+.pz-shop span { font-size: 1.700cqw; line-height: 1.25; font-weight: 600; }
+.pz-theme { left: 77cqw; top: 20.500cqw; width: 23cqw; height: 27cqw; z-index: 2; gap: .3cqw; align-content: end; padding-bottom: 2.200cqw; background: linear-gradient(160deg, #7440e6, #35197f); box-shadow: 0 2cqw 4cqw rgba(0,0,0,.55), 0 0 4cqw rgba(124,58,237,.45); }
+.pz-theme b { font-size: 5cqw; line-height: 1; }
+.pz-theme span { font-size: 2cqw; font-weight: 600; }
+.pz-back { left: 70cqw; top: 15.500cqw; width: 20cqw; height: 22cqw; transform: rotate(5deg); background: linear-gradient(160deg, #5b32c8, #2a1470); opacity: .85; }
+.pz-shot { position: absolute; left: 7%; right: 7%; top: 7%; height: 40%; border-radius: 1cqw; background:
+  linear-gradient(90deg, #1a1f2e 0 34%, transparent 34%) 0 0 / 100% 40% no-repeat,
+  repeating-linear-gradient(90deg, #f3efe9 0 28%, #fff 28% 32%), #f3efe9; opacity: .95; }
+.pz-back .pz-shot { height: 50%; }
+.pz-lap { left: 52cqw; top: 43cqw; width: 58cqw; z-index: 4; transform-origin: 30% 90%; transform: perspective(72cqw) rotateY(-20deg) rotateX(7deg) rotateZ(-6deg); filter: drop-shadow(0 3cqw 4cqw rgba(0,0,0,.6)); }
+.pz-scr { aspect-ratio: 16 / 10; background: #0b0f1a; border: .7cqw solid #2b3244; border-bottom-width: .9cqw; border-radius: 1.600cqw 1.600cqw .4cqw .4cqw; padding: .8cqw; display: grid; grid-template-columns: 25% 1fr; gap: .8cqw; box-shadow: 0 0 5cqw rgba(25,217,162,.4); }
+.pz-side { background: #0f1524; border-radius: .8cqw; padding: .9cqw; display: grid; gap: .5cqw; align-content: start; font-size: 1.050cqw; line-height: 1.2; }
+.pz-side u, .pz-side s { text-decoration: none; padding: .55cqw .7cqw; border-radius: .5cqw; color: #94a3b8; }
+.pz-side u { background: rgba(25,217,162,.18); color: #6ee7b7; font-weight: 700; }
+.pz-main { background: #f4f1ec; border-radius: .8cqw; padding: .9cqw; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: .7cqw; }
+.pz-main i { border-radius: .5cqw; background: #111827; }
+.pz-main .d1 { background: radial-gradient(circle at 70% 50%, #5b6475 0 12%, transparent 13%), #0c111c; }
+.pz-main .d2 { background: radial-gradient(circle at 50% 45%, #b08d57 0 14%, transparent 15%), #0c111c; }
+.pz-main .d3 { background: linear-gradient(#0c111c, #1a2236); }
+.pz-main .d4 { background: radial-gradient(circle at 30% 60%, #7f1d1d 0 16%, transparent 17%), #0c111c; }
+.pz-main .d5 { background: linear-gradient(135deg, #111827, #2a1a3f); }
+.pz-main .l1 { background: radial-gradient(circle at 50% 38%, #e8b4a0 0 18%, transparent 19%), #ede6dc; }
+.pz-main .l2 { background: radial-gradient(circle at 50% 38%, #cf9b86 0 18%, transparent 19%), #f2ddd0; }
+.pz-main .l3 { background: radial-gradient(circle at 50% 40%, #e0a98f 0 18%, transparent 19%), #e9dccf; }
+.pz-base { height: 2.200cqw; margin: 0 -3.500cqw; border-radius: 0 0 3cqw 3cqw; background: linear-gradient(#d3d8e0, #8a909d); box-shadow: 0 .6cqw 3cqw rgba(25,217,162,.9); }
+.pz-strip { left: 2.400cqw; right: 2.400cqw; bottom: 2.200cqw; height: 11.500cqw; z-index: 5; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; background: rgba(15,22,38,.9); border: .22cqw solid rgba(140,170,210,.22); border-radius: 2.200cqw; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.pz-strip div { display: flex; align-items: center; justify-content: center; gap: 1.200cqw; padding: 0 .8cqw; font-size: 1.400cqw; line-height: 1.25; font-weight: 600; color: #e2e8f0; border-left: .2cqw solid rgba(140,170,210,.18); }
+.pz-strip div:first-child { border-left: 0; }
+.pz-strip svg { width: 3.600cqw; height: 3.600cqw; flex-shrink: 0; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px 20px; text-align: center; display: grid; gap: 4px; }
+.stat b { font-size: clamp(30px, 4.5vw, 44px); font-weight: 800; color: var(--neon); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--mut); font-size: 14px; }
+
+/* compare */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.col { border-radius: 22px; padding: clamp(22px, 3vw, 34px); display: grid; gap: 18px; align-content: start; }
+.col.bad { background: var(--card); border: 1px solid rgba(255,77,79,.25); }
+.col.good { background: linear-gradient(160deg, rgba(25,217,162,.12), rgba(56,189,248,.06)); border: 1px solid rgba(25,217,162,.45); box-shadow: 0 0 40px -14px rgba(25,217,162,.35); }
+.col h3 { font-size: 24px; }
+.col ul { list-style: none; padding: 0; display: grid; gap: 13px; }
+.col li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; color: var(--mut); }
+.col.good li { color: var(--txt); }
+.col li::before { content: "✕"; color: var(--red); font-weight: 800; }
+.col.good li::before { content: "✓"; color: var(--neon); }
+.cats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 34px; }
+.cat { font-size: 14px; font-weight: 600; padding: 9px 16px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--txt); }
+
+/* sandbox */
+.sbx { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; }
+.snips { display: grid; gap: 8px; align-content: start; }
+.snip { text-align: left; background: var(--card); border: 1px solid var(--line); color: var(--txt); border-radius: 14px; padding: 13px 15px; cursor: pointer; display: grid; gap: 2px; font-weight: 600; font-size: 15px; }
+.snip small { font-family: var(--f-code); color: var(--dim); font-size: 11px; font-weight: 500; }
+.snip[aria-selected="true"] { border-color: var(--neon); background: rgba(25,217,162,.08); box-shadow: 0 0 22px -8px rgba(25,217,162,.5); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.panel-head h3 { font-size: 17px; letter-spacing: -0.01em; }
+.panel-head h3 small { font-family: var(--f-code); color: var(--dim); font-weight: 500; margin-right: 8px; }
+.seg { display: inline-flex; background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { background: transparent; border: 0; color: var(--mut); font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--neon); color: var(--neon-ink); }
+.panel-body { padding: clamp(18px, 3vw, 34px); min-height: 280px; display: grid; place-items: center; }
+.panel-body pre { margin: 0; width: 100%; max-height: 420px; overflow: auto; font-family: var(--f-code); font-size: 12.5px; line-height: 1.7; color: var(--mut); background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.panel-foot { padding: 12px 18px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+.panel-foot code { font-family: var(--f-code); color: var(--neon); }
+
+/* snippet previews (the same markup is shown in the Code view) */
+.pv { width: 100%; max-width: 440px; margin: 0 auto; }
+.ci-eta { display: grid; gap: 16px; }
+.ci-eta .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; position: relative; }
+.ci-eta .steps::before { content: ""; position: absolute; left: 16%; right: 16%; top: 15px; height: 2px; background: linear-gradient(90deg, #19d9a2, #38bdf8, #334155); }
+.ci-eta .st { position: relative; text-align: center; display: grid; gap: 6px; justify-items: center; font-size: 13px; }
+.ci-eta .st i { width: 32px; height: 32px; border-radius: 50%; background: #0a1020; border: 2px solid #19d9a2; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 800; color: #19d9a2; }
+.ci-eta .st:nth-child(3) i { border-color: #334155; color: #64748b; }
+.ci-eta .st small { color: #94a3b8; }
+.ci-eta .pin { display: flex; gap: 8px; }
+.ci-eta .pin input { flex: 1; min-width: 0; background: #0a1020; border: 1px solid rgba(140,170,210,.25); color: #f1f5f9; border-radius: 10px; padding: 11px 12px; font: inherit; }
+.ci-eta .pin button { background: #19d9a2; color: #031a14; border: 0; border-radius: 10px; padding: 0 18px; font-weight: 800; }
+.ci-timer { background: #0a1020; border: 1px solid rgba(25,217,162,.3); border-radius: 16px; padding: 18px; text-align: center; display: grid; gap: 12px; }
+.ci-timer .b { justify-self: center; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #fbbf24; background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.35); padding: 4px 12px; border-radius: 999px; }
+.ci-timer .row { display: flex; justify-content: center; gap: 8px; }
+.ci-timer .u { width: 72px; background: #060a16; border: 1px solid rgba(140,170,210,.2); border-radius: 10px; padding: 8px 0 6px; }
+.ci-timer .u b { display: block; font-family: "JetBrains Mono", monospace; font-size: 26px; font-variant-numeric: tabular-nums; }
+.ci-timer .u:last-child { border-color: rgba(25,217,162,.5); }
+.ci-timer .u:last-child b { color: #19d9a2; }
+.ci-timer .u span { font-size: 10px; letter-spacing: .1em; color: #64748b; }
+.ci-proof { display: inline-flex; align-items: center; gap: 12px; background: #f3ebdd; color: #2d2d2d; border-radius: 999px; padding: 7px 18px 7px 8px; font-size: 14px; }
+.ci-proof .av { display: flex; }
+.ci-proof .av i { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid #f3ebdd; margin-left: -8px; }
+.ci-proof .av i:first-child { margin-left: 0; background: #ff8a65; }
+.ci-proof .av i:nth-child(2) { background: #4db6ac; }
+.ci-proof .av i:nth-child(3) { background: #7986cb; }
+.ci-trust { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: linear-gradient(135deg, #f0faf5, #f5f0ff); border-radius: 14px; padding: 16px 10px; }
+.ci-trust div { display: grid; justify-items: center; gap: 6px; text-align: center; color: #1a1a1a; font-size: 12px; font-weight: 700; line-height: 1.2; }
+.ci-trust div small { color: #666; font-weight: 400; font-size: 11px; }
+.ci-trust svg { width: 38px; height: 38px; padding: 9px; border-radius: 50%; }
+.ci-rate { display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; background: rgba(15,24,44,.9); border: 1px solid rgba(255,215,0,.3); border-radius: 999px; padding: 10px 22px; }
+.ci-rate .s { color: #ffb800; letter-spacing: 2px; }
+.ci-rate em { font-style: normal; font-size: 13px; color: #94a3b8; }
+.ci-rate em b { color: #19d9a2; }
+.ci-stock { display: inline-flex; align-items: center; gap: 10px; background: rgba(255,77,79,.08); border: 1px solid rgba(255,77,79,.35); border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 700; color: #ffa39e; }
+.ci-stock i { width: 10px; height: 10px; border-radius: 50%; background: #ff4d4f; box-shadow: 0 0 10px #ff4d4f; animation: pulse 1.4s infinite; }
+.ci-stock b { color: #ff4d4f; font-size: 15px; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.3); } }
+.ci-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(8,12,27,.96); border: 1px solid rgba(25,217,162,.35); border-radius: 16px; padding: 12px 14px; }
+.ci-bar .p { display: grid; line-height: 1.1; }
+.ci-bar .p b { font-size: 20px; }
+.ci-bar .p small { color: #94a3b8; }
+.ci-bar a { background: #19d9a2; color: #031a14; font-weight: 800; padding: 11px 20px; border-radius: 999px; text-decoration: none; }
+
+/* offer strip */
+.strip { background: linear-gradient(135deg, rgba(25,217,162,.14), rgba(56,189,248,.1)); border: 1px solid rgba(25,217,162,.4); border-radius: 26px; padding: clamp(26px, 5vw, 52px); display: grid; justify-items: center; gap: 18px; text-align: center; }
+.strip h2 { font-size: clamp(28px, 4.4vw, 44px); font-weight: 800; }
+.save { font-family: var(--f-code); font-size: 12px; font-weight: 800; letter-spacing: .1em; color: var(--red); background: rgba(255,77,79,.12); border: 1px solid rgba(255,77,79,.4); padding: 5px 14px; border-radius: 999px; }
+.clock { display: flex; align-items: center; gap: 8px; }
+.clock .u { min-width: 74px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 6px 8px; text-align: center; }
+.clock .u b { display: block; font-family: var(--f-code); font-size: clamp(24px, 5vw, 32px); font-variant-numeric: tabular-nums; }
+.clock .u span { font-size: 10px; letter-spacing: .12em; color: var(--dim); }
+.clock .u.sec b { color: var(--neon); }
+.clock .sep { color: var(--dim); font-family: var(--f-code); font-size: 24px; }
+
+/* studios */
+.studios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.studio { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; display: grid; gap: 16px; align-content: start; }
+.studio .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(25,217,162,.12); border: 1px solid rgba(25,217,162,.3); display: grid; place-items: center; color: var(--neon); }
+.studio .ic svg { width: 24px; height: 24px; }
+.studio h3 { font-size: 22px; }
+.studio p { color: var(--mut); font-size: 15px; }
+.tagline { font-family: var(--f-code); font-size: 11px; letter-spacing: .06em; color: var(--sky); }
+.mini { font-family: var(--f-code); font-size: 12px; color: var(--mut); background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; border-left: 3px solid var(--neon); }
+.studio ul { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.studio li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; }
+.studio li::before { content: "✓"; color: var(--neon); font-weight: 800; }
+
+/* testimonials */
+.note { font-family: var(--f-code); font-size: 12px; color: var(--mut); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 14px; }
+.quotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.quote { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 26px; display: grid; gap: 18px; align-content: space-between; }
+.quote .s { color: var(--amber); letter-spacing: 3px; }
+.quote blockquote { margin: 0; font-size: 16px; color: var(--txt); }
+.who { display: flex; align-items: center; gap: 12px; }
+.who i { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--neon), var(--sky)); display: grid; place-items: center; color: var(--neon-ink); font-style: normal; font-weight: 800; }
+.who div { display: grid; line-height: 1.25; font-weight: 700; }
+.who small { color: var(--dim); font-weight: 500; font-size: 13px; }
+
+/* touchpoints */
+.tp { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.tp div { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 20px; display: grid; gap: 4px; align-content: start; }
+.tp svg { width: 26px; height: 26px; color: var(--neon); margin-bottom: 8px; }
+.tp h3 { font-size: 18px; letter-spacing: -0.01em; }
+.tp p { color: var(--mut); font-size: 14px; }
+
+/* pricing */
+.price { max-width: 760px; margin: 0 auto; background: linear-gradient(160deg, rgba(25,217,162,.1), var(--card) 40%); border: 1px solid rgba(25,217,162,.5); border-radius: 28px; padding: clamp(24px, 5vw, 52px); display: grid; gap: 24px; box-shadow: 0 0 60px -20px rgba(25,217,162,.45); }
+.price header { display: grid; gap: 10px; text-align: center; justify-items: center; }
+.flash { font-size: 13px; font-weight: 700; color: var(--amber); background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.35); padding: 6px 14px; border-radius: 999px; }
+.price-row { display: flex; justify-content: center; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.price-row .now { font-size: clamp(54px, 10vw, 80px); font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
+.price-row s { color: var(--dim); font-size: 22px; }
+.price-row .off { background: rgba(255,77,79,.15); color: #ff8587; font-weight: 800; font-size: 13px; padding: 5px 11px; border-radius: 8px; }
+.price ul { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+.price li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; font-size: 15px; }
+.price li::before { content: "✓"; color: var(--neon); font-weight: 800; }
+.price .btn { width: 100%; font-size: 19px; }
+.secure { text-align: center; color: var(--dim); font-size: 13px; }
+
+/* faq */
+.faq { display: grid; gap: 10px; max-width: 800px; margin: 0 auto; }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 4px 22px; }
+details[open] { border-color: rgba(25,217,162,.4); }
+summary { cursor: pointer; font-weight: 700; font-size: 17px; padding: 17px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--neon); font-size: 24px; line-height: 1; transition: transform .2s ease; }
+details[open] summary::after { transform: rotate(45deg); }
+details p { color: var(--mut); padding-bottom: 18px; max-width: 64ch; }
+
+.final { display: grid; justify-items: center; text-align: center; gap: 22px; }
+.final .h2 { max-width: 20ch; }
+footer { border-top: 1px solid var(--line); padding-block: 30px; color: var(--dim); font-size: 13px; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--txt); }
+
+.sticky { display: none; }
+@media (max-width: 860px) {
+  .hero-grid, .compare, .sbx, .studios, .quotes { grid-template-columns: 1fr; }
+  .stats, .tp { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .snips { display: flex; overflow-x: auto; padding-bottom: 6px; }
+  .snip { flex: 0 0 auto; min-width: 150px; }
+  .price ul { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .sticky { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; align-items: center; justify-content: space-between; gap: 12px; background: rgba(8,12,27,.94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid rgba(25,217,162,.35); box-shadow: 0 -10px 30px rgba(0,0,0,.7); padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+  .sticky .p { display: grid; line-height: 1.1; }
+  .sticky .row { display: flex; align-items: baseline; gap: 6px; }
+  .sticky .row b { font-size: 22px; font-weight: 800; }
+  .sticky .row s { color: var(--dim); font-size: 13px; }
+  .sticky .row em { font-style: normal; font-size: 10px; font-weight: 800; color: #f87171; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.35); padding: 2px 5px; border-radius: 4px; }
+  .sticky small { color: var(--mut); font-size: 11px; }
+  .sticky .btn { font-size: 15px; padding: 12px 20px; }
+  .chip.a { left: 0; } .chip.b { right: 0; }
+}
+@media (max-width: 480px) {
+  .ci-trust { grid-template-columns: repeat(2, 1fr); }
+  .clock .u { min-width: 0; flex: 1; }
+  .clock { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn::after, .ci-stock i { animation: none; }
+  .btn, summary::after { transition: none; }
+}
+</style>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="msg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Limited Time Offer. Lifetime Access</span>
+    <a class="btn btn-ghost" href="#" data-wa>Talk to us</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Shopify Liquid Code Library</span>
+      <h1>The Ultimate <span>Shopify Liquid</span> Library</h1>
+      <p class="lede">500+ Premium Liquid Sections, 800+ Bonus Themes and 500+ WordPress Landing Pages to build high-converting websites faster.</p>
+      <ul class="ticks">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Premium Components</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Easy to Customize</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save Time and Money</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Lifetime Access</li>
+      </ul>
+      <div class="hero-cta">
+        <a class="btn" href="#pricing" data-buy>Get Lifetime Access, ₹289 <span aria-hidden="true">→</span></a>
+        <div class="hero-price"><s>₹1,499</s><b>One-time payment</b></div>
+      </div>
+      <p class="pay-note">Pay with UPI, cards or netbanking. Instant access after checkout.</p>
+    </div>
+    <div class="editor-wrap">
+      <div class="editor">
+        <div class="ed-head"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="ed-file">theme.liquid</span></div>
+<div class="ed-pad">
+<figure class="poster" role="img" aria-label="Code Injection, the ultimate Shopify Liquid library: 500+ premium Liquid sections, 800+ bonus themes, instant download">
+  <i class="pz-floor"></i><i class="pz-ring"></i>
+
+  <div class="pz-logo"><span class="pz-mono">CI</span><div><b>CODE INJECTION</b><small>Shopify Liquid Library</small></div></div>
+  <div class="pz-pro"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18 2 7l5 4 5-7 5 7 5-4-1 11z"/></svg>2026 PRO</div>
+
+  <h2 class="pz-h">The Ultimate<br><span>Shopify Liquid</span><br>Library</h2>
+  <p class="pz-sub">500+ Premium Liquid Sections, 800+ Bonus Themes and 500+ WordPress Landing Pages to build high-converting websites faster.</p>
+
+  <div class="pz-feats">
+    <div><i style="--c:#19d9a2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></i><span>Premium<br>Components</span></div>
+    <div><i style="--c:#38bdf8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></i><span>Easy to<br>Customize</span></div>
+    <div><i style="--c:#a78bfa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><span>Save Time<br>and Money</span></div>
+    <div><i style="--c:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.500-3.500-4-5.500-4a4 4 0 0 0 0 8c2 0 3.500-1.500 5.500-4zm0 0c2 2.500 3.500 4 5.500 4a4 4 0 0 0 0-8c-2 0-3.500 1.500-5.500 4z"/></svg></i><span>Lifetime<br>Access</span></div>
+  </div>
+
+  <div class="pz-card pz-back"><div class="pz-shot"></div></div>
+  <div class="pz-card pz-theme"><div class="pz-shot"></div><b>800+</b><span>Bonus Themes</span></div>
+  <div class="pz-card pz-shop">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7zM9 7a3 3 0 0 1 6 0"/></svg>
+    <em>shopify</em><b>500+</b><span>Premium Liquid<br>Sections</span>
+  </div>
+
+  <div class="pz-lap">
+    <div class="pz-scr">
+      <div class="pz-side"><u>Hero Sections</u><s>Collection Pages</s><s>Header and Footer</s><s>Cart and Checkout</s><s>Customer Reviews</s><s>Marketing Sections</s><s>Blog Sections</s><s>Premium Components</s></div>
+      <div class="pz-main"><i class="d1"></i><i class="l1"></i><i class="d2"></i><i class="d3"></i><i class="l2"></i><i class="d4"></i><i class="l3"></i><i class="l1"></i><i class="d5"></i></div>
+    </div>
+    <div class="pz-base"></div>
+  </div>
+
+  <div class="pz-strip">
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="#19d9a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>Instant<br>Download</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Clean and<br>Developer Friendly</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Responsive<br>and Modern Design</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="#19d9a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15c0-5 4-10 12-11 0 8-5 12-10 12zM9 15l-4 4M8 11H4l2-4"/></svg><span>Boost<br>Conversions</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="#19d9a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></svg><span>Free<br>Updates</span></div>
+  </div>
+</figure>
+</div>
+      </div>
+      <div class="chip b"><i class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5M3 17.500l9 5 9-5"/></svg></i><div><b>1800+ Components</b><span>Premium resources</span></div></div>
+      <div class="chip a"><i class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg></i><div><b>Zero Dependencies</b><span>Pure Liquid and vanilla JS</span></div></div>
+    </div>
+  </div>
+</header>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>1800+</b><span>Total premium resources</span></div>
+      <div class="stat"><b>500+</b><span>Liquid sections</span></div>
+      <div class="stat"><b>800+</b><span>Bonus Shopify themes</span></div>
+      <div class="stat"><b>₹0/mo</b><span>No monthly fee</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Stop wasting time</p>
+      <h2 class="h2">Why top Shopify stores are ditching heavy apps</h2>
+      <p class="lede">Get everything you need in one Liquid library. No bulky apps. No recurring fees.</p>
+    </div>
+    <div class="compare">
+      <div class="col bad">
+        <h3>10 to 15 separate Shopify apps</h3>
+        <ul>
+          <li>A recurring monthly fee for every app</li>
+          <li>Generic widget designs that don't match your brand</li>
+          <li>Slower store loading speed</li>
+          <li>Waiting on a developer for small changes</li>
+          <li>Many tools, apps and resources to manage</li>
+        </ul>
+      </div>
+      <div class="col good">
+        <h3>500+ native Liquid snippets</h3>
+        <ul>
+          <li>One-time ₹289, lifetime access, no recurring charges</li>
+          <li>800+ Shopify themes and 500+ WordPress landing pages</li>
+          <li>Native performance, runs on Shopify's servers with no external calls</li>
+          <li>Fully customizable and ready to use</li>
+          <li>Faster, higher-converting, more unique store design</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cats">
+      <span class="cat">Header and Footer</span><span class="cat">Product Sections</span><span class="cat">Collection Layouts</span><span class="cat">Cart and Checkout</span><span class="cat">Marketing Sections</span><span class="cat">Utility Components</span>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="sandbox">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">7 live previews. Click to test drive</p>
+      <h2 class="h2">Interactive component sandbox</h2>
+      <p class="lede">Pick a snippet to see its live output, read the code and copy it in one click.</p>
+    </div>
+    <div class="sbx">
+      <div class="snips" role="tablist" aria-label="Snippets" id="snips"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3 id="pTitle"></h3>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="seg" role="group" aria-label="View">
+              <button type="button" id="vPrev" aria-pressed="true">Preview</button>
+              <button type="button" id="vCode" aria-pressed="false">Code</button>
+            </div>
+            <button type="button" class="btn btn-ghost" id="copy">Copy</button>
+          </div>
+        </div>
+        <div class="panel-body" id="pBody"></div>
+        <div class="panel-foot">Install: Theme Editor, then Add Custom Liquid, paste the snippet and Save. <code>Sample values shown, edit the text in the snippet.</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="strip">
+      <span class="save">SAVE 81%</span>
+      <h2>Limited time offer</h2>
+      <p class="lede">Get 550+ premium sections for ₹289, one-time payment.</p>
+      <div class="clock" role="timer">
+        <div class="u"><b data-h>00</b><span>HOURS</span></div><span class="sep">:</span>
+        <div class="u"><b data-m>00</b><span>MINS</span></div><span class="sep">:</span>
+        <div class="u sec"><b data-s>00</b><span>SECS</span></div>
+      </div>
+      <a class="btn" href="#pricing" data-buy>Get Lifetime Access, ₹289 <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">More than just snippets</p>
+      <h2 class="h2">Beyond snippets: 3 dedicated conversion studios</h2>
+      <p class="lede">Everything you need to build, customize and grow your Shopify store.</p>
+    </div>
+    <div class="studios">
+      <article class="studio">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3>E-commerce AI prompt library</h3>
+        <p>100+ ready-to-use prompts for product descriptions, SEO, ads and more.</p>
+        <span class="tagline">WORKS WITH CHATGPT, CLAUDE AND GEMINI</span>
+        <div class="mini">Write 3 benefit-led bullet points for [product]...</div>
+        <ul><li>100+ prompt templates</li><li>Copy, paste and edit for your store</li></ul>
+      </article>
+      <article class="studio">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg></div>
+        <h3>Product description design builder</h3>
+        <p>Create clean product descriptions with ready layouts, without writing code.</p>
+        <span class="tagline">DRAG, DROP, PASTE</span>
+        <ul><li>Drag and drop interface</li><li>Pre-made description layouts</li></ul>
+      </article>
+      <article class="studio">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H5a2 2 0 0 0-2 2v5h7zM21 10V5a2 2 0 0 0-2-2h-5v7zM3 14v5a2 2 0 0 0 2 2h5v-7zM14 14h7v5a2 2 0 0 1-2 2h-5z"/></svg></div>
+        <h3>Interactive page playground</h3>
+        <p>Mix and match sections and see the page come together live.</p>
+        <span class="tagline">LIVE PREVIEW</span>
+        <ul><li>Real-time preview</li><li>Build unique store pages</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Trusted by store owners</p>
+      <h2 class="h2">What Shopify store owners are saying</h2>
+      <p class="note">Sample text. Replace with real reviews from your own customers.</p>
+    </div>
+    <div class="quotes">
+      <figure class="quote"><span class="s">★★★★★</span><blockquote>"Adding the countdown and sticky cart snippets took a couple of minutes. The code is clean and did not conflict with our theme."</blockquote><div class="who"><i>A</i><div>Customer name<small>Store name</small></div></div></figure>
+      <figure class="quote"><span class="s">★★★★★</span><blockquote>"We stopped paying for three apps and got the same features natively. The store feels faster."</blockquote><div class="who"><i>B</i><div>Customer name<small>Store name</small></div></div></figure>
+      <figure class="quote"><span class="s">★★★★★</span><blockquote>"Good value for client stores. Clean sections, no monthly apps, and easy to restyle."</blockquote><div class="who"><i>C</i><div>Customer name<small>Shopify developer</small></div></div></figure>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Everything you need</p>
+      <h2 class="h2">Built for every high-conversion touchpoint</h2>
+      <p class="lede">A complete set of sections and templates to grow your Shopify store.</p>
+    </div>
+    <div class="tp">
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><h3>Header and navigation</h3><p>10+ unique header styles</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c0-5 4-9 11-10 0 7-4 11-9 11zM9 15l-4 4"/></svg><h3>Hero sections</h3><p>20+ premium hero layouts</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7zM9 7a3 3 0 0 1 6 0"/></svg><h3>Product pages</h3><p>50+ product page elements</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><h3>Collection pages</h3><p>20+ collection layouts</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg><h3>Cart and checkout</h3><p>15+ cart and checkout elements</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></svg><h3>Trust and social proof</h3><p>10+ trust badge sections</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l8 4V6L7 10H4a1 1 0 0 0-1 1zM19 8a5 5 0 0 1 0 8"/></svg><h3>Marketing sections</h3><p>20+ countdowns, banners, offers</p></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><h3>Utility components</h3><p>30+ miscellaneous components</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">One-time payment. Lifetime access</p>
+      <h2 class="h2">Shopify Liquid Library, lifetime license</h2>
+      <p class="lede">Instant access to 500+ premium sections, templates and tools. No monthly fees.</p>
+    </div>
+    <div class="price">
+      <header>
+        <span class="flash">Flash offer ends in <b data-bar>00:00:00</b></span>
+        <div class="price-row"><span class="now">₹289</span><s>₹1,499</s><span class="off">81% OFF</span></div>
+        <p class="secure">One-time payment, no monthly recurring fees</p>
+      </header>
+      <ul>
+        <li>All 500+ snippets across 12 categories</li>
+        <li>800+ bonus Shopify themes</li>
+        <li>500+ WordPress landing pages</li>
+        <li>Interactive sandbox and live previewer</li>
+        <li>Lifetime access and free updates</li>
+        <li>Instant access after checkout</li>
+      </ul>
+      <a class="btn" href="#" data-buy>Get Lifetime Access, ₹289 <span aria-hidden="true">→</span></a>
+      <p class="secure">Secure checkout. UPI, cards and netbanking.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="sec-head"><p class="kicker">Questions?</p><h2 class="h2">Frequently asked questions</h2><p class="lede">Everything you need to know about the library.</p></div>
+    <div class="faq">
+      <details open><summary>Do I need coding experience?</summary><p>No. Open the Shopify Theme Editor, add a Custom Liquid block, paste the snippet and save. If you can copy and paste text, you can install a snippet in under a minute.</p></details>
+      <details><summary>How do I access the library after paying?</summary><p>Right after payment you are redirected to the full library, where every section, theme and landing page is unlocked.</p></details>
+      <details><summary>Can I customize colors, text and icons?</summary><p>Yes. Each snippet has clearly labeled CSS at the top. Change hex colors, font sizes, spacing and wording to match your brand.</p></details>
+      <details><summary>Which Shopify themes are supported?</summary><p>Online Store 2.0 themes such as Dawn, Sense, Craft, Refresh, Spotlight, Studio and Crave, as well as premium and custom themes.</p></details>
+      <details><summary>Will I get future updates?</summary><p>Yes. Future updates and new components are included at no extra charge.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap final">
+    <h2 class="h2">Start boosting your store's conversion rate today</h2>
+    <p class="lede">500+ Liquid sections, 800+ bonus themes and 500+ WordPress landing pages.</p>
+    <a class="btn" href="#pricing" data-buy>Get Lifetime Access, ₹289 <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Code Injection. All rights reserved.</span>
+    <nav><a href="#">Home</a><a href="#pricing">Pricing</a><a href="#">FAQs</a><a href="#">Privacy</a><a href="#">Refunds</a><a href="#" data-wa>Chat</a></nav>
+  </div>
+</footer>
+
+<div class="sticky">
+  <div class="p"><div class="row"><b>₹289</b><s>₹1,499</s><em>81% OFF</em></div><small>One-time payment</small></div>
+  <a class="btn" href="#pricing" data-buy>BUY NOW <span aria-hidden="true">→</span></a>
+</div>
+
+<script>
+(function () {
+  /* ---- Razorpay + Meta Pixel checkout ---- */
+  var PRODUCT_AMOUNT_PAISE = 28900; // ₹289. Server independently enforces this amount.
+  var checkoutBusy = false;
+
+  function track(name, data) {
+    if (typeof window.fbq === "function") window.fbq("track", name, data || {});
+  }
+
+  function getEmail() {
+    var value = window.prompt("Enter your email address. Your download link will be sent here:");
+    if (!value) return "";
+    value = value.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : "";
+  }
+
+  async function startCheckout(event) {
+    event.preventDefault();
+    if (checkoutBusy) return;
+    var email = getEmail();
+    if (!email) { alert("Please enter a valid email address to receive your digital product."); return; }
+    checkoutBusy = true;
+    var button = event.currentTarget;
+    var original = button.innerHTML;
+    button.setAttribute("aria-busy", "true");
+    button.style.pointerEvents = "none";
+    button.innerHTML = "Opening secure checkout…";
+    try {
+      if (!window.Razorpay) {
+        await new Promise(function(resolve, reject) {
+          var script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+      var orderResponse = await fetch("/.netlify/functions/create-order", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email })
+      });
+      var orderData = await orderResponse.json();
+      if (!orderResponse.ok) throw new Error(orderData.error || "Could not start payment.");
+      track("InitiateCheckout", { value: 289, currency: "INR", content_name: "Shopify Liquid Library" });
+      var options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Code Injection",
+        description: "Lifetime access to Shopify Liquid Library",
+        order_id: orderData.orderId,
+        prefill: { email: email },
+        notes: { customer_email: email, product: "Shopify Liquid Library" },
+        theme: { color: "#19d9a2" },
+        handler: async function (response) {
+          try {
+            var verifyResponse = await fetch("/.netlify/functions/verify-payment", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                email: email
+              })
+            });
+            var verifyData = await verifyResponse.json();
+            if (!verifyResponse.ok || !verifyData.verified) throw new Error(verifyData.error || "Payment verification failed.");
+            track("Purchase", { value: 289, currency: "INR", content_name: "Shopify Liquid Library" });
+            alert("Payment verified! Your download link has been sent to " + email + ". Please also check Spam/Promotions.");
+            checkoutBusy = false; restoreButton();
+          } catch (err) {
+            alert("We received a payment response, but could not verify it yet. Please do not pay again. Contact support with payment ID: " + response.razorpay_payment_id);
+            checkoutBusy = false; restoreButton();
+          }
+        },
+        modal: { ondismiss: function () { checkoutBusy = false; restoreButton(); } }
+      };
+      function restoreButton() {
+        document.querySelectorAll("[data-buy]").forEach(function(a) {
+          a.style.pointerEvents = ""; a.removeAttribute("aria-busy");
+          if (a.dataset.originalHtml) a.innerHTML = a.dataset.originalHtml;
+        });
+      }
+      document.querySelectorAll("[data-buy]").forEach(function(a) { if (!a.dataset.originalHtml) a.dataset.originalHtml = a.innerHTML; });
+      var rzp = new Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        alert("Payment failed: " + ((response.error && response.error.description) || "Please try again."));
+        checkoutBusy = false; restoreButton();
+      });
+      rzp.open();
+      button.innerHTML = original;
+    } catch (err) {
+      alert(err.message || "Unable to open checkout. Please try again.");
+      checkoutBusy = false;
+      document.querySelectorAll("[data-buy]").forEach(function(a) { a.style.pointerEvents = ""; a.removeAttribute("aria-busy"); });
+    }
+  }
+
+  document.querySelectorAll("[data-buy]").forEach(function (a) {
+    a.addEventListener("click", startCheckout);
+  });
+  document.querySelectorAll("[data-wa]").forEach(function (a) {
+    a.href = "mailto:SUPPORT_EMAIL_PLACEHOLDER";
+  });
+
+  /* ---- Countdown (page + preview) ---- */
+  var end = OFFER_END ? Date.parse(OFFER_END) : 0;
+  if (!end) {
+    var key = "ci_offer_deadline";
+    try {
+      var saved = parseInt(localStorage.getItem(key), 10);
+      if (saved && saved > Date.now()) end = saved;
+      else { end = Date.now() + 3 * 864e5; localStorage.setItem(key, String(end)); }
+    } catch (e) { end = Date.now() + 3 * 864e5; }
+  }
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function tick() {
+    var left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    var h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
+    document.querySelectorAll("[data-h]").forEach(function (e) { e.textContent = pad(h); });
+    document.querySelectorAll("[data-m]").forEach(function (e) { e.textContent = pad(m); });
+    document.querySelectorAll("[data-s]").forEach(function (e) { e.textContent = pad(s); });
+    document.querySelectorAll("[data-bar]").forEach(function (e) { e.textContent = pad(h) + ":" + pad(m) + ":" + pad(s); });
+  }
+  tick(); setInterval(tick, 1000);
+
+  /* ---- Sandbox ---- */
+  var ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+  var S = [
+    { id: "10001", name: "Trust and Delivery ETA", html:
+'<div class="ci-eta">\n  <div class="steps">\n    <div class="st"><i>1</i>Order placed<small>Today</small></div>\n    <div class="st"><i>2</i>Shipped<small>1-3 days</small></div>\n    <div class="st"><i>3</i>Delivered<small>3-7 days</small></div>\n  </div>\n  <div class="pin">\n    <input type="text" placeholder="Enter pincode" value="110091" aria-label="Pincode">\n    <button type="button">Check</button>\n  </div>\n</div>' },
+    { id: "10002", name: "Countdown Timer", html:
+'<div class="ci-timer">\n  <span class="b">LIMITED TIME OFFER</span>\n  <p>Flash sale ends soon</p>\n  <div class="row">\n    <div class="u"><b data-h>02</b><span>HOURS</span></div>\n    <div class="u"><b data-m>45</b><span>MINS</span></div>\n    <div class="u"><b data-s>30</b><span>SECS</span></div>\n  </div>\n</div>\n<!-- the full library includes the JS that keeps the timer running -->' },
+    { id: "10003", name: "Social Proof", html:
+'<div class="ci-proof">\n  <div class="av"><i></i><i></i><i></i></div>\n  <span><b>Customer name</b> and 100+ others purchased</span>\n</div>' },
+    { id: "10004", name: "Trust Badges", html:
+'<div class="ci-trust">\n  <div>' + ICO.replace('<svg ', '<svg style="background:#e6f7f0;color:#1a9e6a" ') + '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>100% Original<small>Certified</small></div>\n  <div>' + ICO.replace('<svg ', '<svg style="background:#e8f0fe;color:#4a6fe3" ') + '<path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>7 Days Return<small>Return policy</small></div>\n  <div>' + ICO.replace('<svg ', '<svg style="background:#fff8e1;color:#e6a817" ') + '<path d="m12 2 3 6.3 7 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 7-1z"/></svg>4.8 Rating<small>Sample value</small></div>\n  <div>' + ICO.replace('<svg ', '<svg style="background:#fdeaea;color:#e53e3e" ') + '<path d="M1 4h14v11H1zM15 8h4l3 3v4h-7zM6 19a2 2 0 1 0 0-.1M18 19a2 2 0 1 0 0-.1"/></svg>Free Delivery<small>All India</small></div>\n</div>' },
+    { id: "10005", name: "Star Rating", html:
+'<div class="ci-rate">\n  <span class="s">★★★★★</span>\n  <b>4.8 / 5.0</b>\n  <em>Based on <b>120</b> verified reviews</em>\n</div>' },
+    { id: "10006", name: "Stock Pulse", html:
+'<div class="ci-stock">\n  <i></i>\n  <span>Only <b>6 items</b> left in stock</span>\n</div>' },
+    { id: "10007", name: "Sticky Buy Bar", html:
+'<div class="ci-bar">\n  <div class="p"><b>₹1,299</b><small>Free delivery</small></div>\n  <a href="#">Add to cart</a>\n</div>' }
+  ];
+  var cur = 0, mode = "prev";
+  var list = document.getElementById("snips"), body = document.getElementById("pBody"), title = document.getElementById("pTitle");
+  var vPrev = document.getElementById("vPrev"), vCode = document.getElementById("vCode"), copyBtn = document.getElementById("copy");
+
+  S.forEach(function (s, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "snip"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", i === 0 ? "true" : "false");
+    b.innerHTML = s.name + "<small>#" + s.id + "</small>";
+    b.addEventListener("click", function () { cur = i; render(); });
+    list.appendChild(b);
+  });
+
+  function render() {
+    var s = S[cur];
+    [].forEach.call(list.children, function (b, i) { b.setAttribute("aria-selected", i === cur ? "true" : "false"); });
+    title.innerHTML = "<small>#" + s.id + "</small>" + s.name;
+    vPrev.setAttribute("aria-pressed", mode === "prev" ? "true" : "false");
+    vCode.setAttribute("aria-pressed", mode === "code" ? "true" : "false");
+    if (mode === "prev") {
+      body.innerHTML = '<div class="pv" style="display:grid;justify-items:center">' + s.html + "</div>";
+      tick();
+    } else {
+      var pre = document.createElement("pre");
+      var code = document.createElement("code");
+      code.textContent = s.html;
+      pre.appendChild(code);
+      body.innerHTML = "";
+      body.appendChild(pre);
+    }
+  }
+  vPrev.addEventListener("click", function () { mode = "prev"; render(); });
+  vCode.addEventListener("click", function () { mode = "code"; render(); });
+  copyBtn.addEventListener("click", function () {
+    var text = S[cur].html;
+    function done() { copyBtn.textContent = "Copied"; setTimeout(function () { copyBtn.textContent = "Copy"; }, 1500); }
+    function fallback() {
+      mode = "code"; render();
+      var pre = body.querySelector("pre");
+      if (pre) { var r = document.createRange(); r.selectNodeContents(pre); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+      copyBtn.textContent = "Press Ctrl+C"; setTimeout(function () { copyBtn.textContent = "Copy"; }, 2000);
+    }
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+  render();
+})();
+</script>
+
+</body>
+</html>
