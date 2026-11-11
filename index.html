@@ -752,6 +752,7 @@ footer a:hover { color: var(--txt); }
   });
 
   /* ---- Countdown (page + preview) ---- */
+  var OFFER_END = ""; /* empty = countdown restarts 3 days from first visit */
   var end = OFFER_END ? Date.parse(OFFER_END) : 0;
   if (!end) {
     var key = "ci_offer_deadline";
